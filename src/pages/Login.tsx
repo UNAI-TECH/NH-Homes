@@ -76,12 +76,12 @@ export const Login: React.FC = () => {
         <input type="password" name="fake_pass" autoComplete="current-password" style={{ display: 'none' }} tabIndex={-1} />
         
         <Input
-          label="Username"
+          label="Username or Email"
           type="text"
-          placeholder=""
+          placeholder="name@company.com or username"
           required
           name="nh_login_user"
-          autoComplete="new-password"
+          autoComplete="username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           leftIcon={<HiOutlineUser className="h-5 w-5" />}
@@ -144,54 +144,29 @@ export const Login: React.FC = () => {
 
   return (
     <>
-      {/* ═══════════════════════════════════════════════
-          MOBILE LAYOUT — Gradient background + centered card
-          ═══════════════════════════════════════════════ */}
-      <div className="min-h-screen flex flex-col items-center justify-center px-5 py-10 md:hidden relative overflow-hidden"
+      <div className="min-h-screen flex flex-col md:flex-row relative overflow-hidden font-sans"
         style={{
           background: 'linear-gradient(135deg, #F58220 0%, #e06c10 25%, #c45a0a 50%, #F58220 75%, #FFA64D 100%)',
         }}
       >
-        {/* Decorative blurred circles */}
-        <div className="absolute top-[-80px] left-[-60px] w-64 h-64 rounded-full opacity-30"
+        {/* Decorative background circles — only visible on mobile (hidden on desktop) */}
+        <div className="absolute top-[-80px] left-[-60px] w-64 h-64 rounded-full opacity-30 pointer-events-none md:hidden"
           style={{ background: 'radial-gradient(circle, #FFA64D, transparent 70%)' }}
         />
-        <div className="absolute bottom-[-100px] right-[-80px] w-80 h-80 rounded-full opacity-25"
+        <div className="absolute bottom-[-100px] right-[-80px] w-80 h-80 rounded-full opacity-25 pointer-events-none md:hidden"
           style={{ background: 'radial-gradient(circle, #fff, transparent 70%)' }}
         />
-        <div className="absolute top-1/3 right-[-40px] w-48 h-48 rounded-full opacity-20"
+        <div className="absolute top-1/3 right-[-40px] w-48 h-48 rounded-full opacity-20 pointer-events-none md:hidden"
           style={{ background: 'radial-gradient(circle, #FFA64D, transparent 70%)' }}
         />
 
-        {/* Heading */}
-        <div className="relative z-10 flex flex-col items-center mb-8 select-none">
-          <h1 className="text-2xl font-extrabold text-white tracking-tight">Login</h1>
-          <p className="text-xs text-white/70 font-medium mt-1">
-            NH Homes Portal
-          </p>
-        </div>
-
-        {/* Login Card */}
-        <div className="relative z-10 w-full max-w-sm bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-7 border border-white/30">
-          {loginFormContent}
-        </div>
-
-        {/* Footer */}
-        <p className="relative z-10 text-[10px] text-white/50 mt-8 font-medium">© 2026 NH Homes Ltd. All rights reserved.</p>
-      </div>
-
-      {/* ═══════════════════════════════════════════════
-          DESKTOP / TABLET / LAPTOP LAYOUT — Split screen
-          ═══════════════════════════════════════════════ */}
-      <div className="min-h-screen hidden md:flex font-sans">
-        
-        {/* Left Panel — Branding & Hero */}
-        <div className="w-1/2 relative overflow-hidden flex flex-col justify-between"
+        {/* Left Panel — Only on desktop (md and up) */}
+        <div className="hidden md:flex md:w-1/2 relative overflow-hidden flex-col justify-between"
           style={{
             background: 'linear-gradient(160deg, #F58220 0%, #e06c10 40%, #c45a0a 70%, #a04808 100%)',
           }}
         >
-          {/* Decorative elements */}
+          {/* Decorative elements for desktop left panel */}
           <div className="absolute top-[-120px] left-[-100px] w-96 h-96 rounded-full opacity-20"
             style={{ background: 'radial-gradient(circle, #FFA64D, transparent 70%)' }}
           />
@@ -244,11 +219,21 @@ export const Login: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Panel — Login Form */}
-        <div className="w-1/2 flex flex-col justify-center px-10 lg:px-20 xl:px-28 bg-white">
-          <div className="max-w-md w-full mx-auto">
-            {/* Header */}
-            <div className="mb-8">
+        {/* Right Panel (Mobile: Centered Card wrapper; Desktop: Split screen right half) */}
+        <div className="flex-1 flex flex-col justify-center items-center md:items-stretch px-5 py-10 md:py-0 md:px-10 lg:px-20 xl:px-28 md:w-1/2 md:bg-white z-10">
+          
+          {/* Mobile-only Heading (Hidden on desktop) */}
+          <div className="flex flex-col items-center mb-8 select-none md:hidden">
+            <h1 className="text-2xl font-extrabold text-white tracking-tight">Login</h1>
+            <p className="text-xs text-white/70 font-medium mt-1">
+              NH Homes Portal
+            </p>
+          </div>
+
+          {/* Form Card (Mobile: bg-white/95 glass card; Desktop: plain content wrapper) */}
+          <div className="w-full max-w-sm md:max-w-md mx-auto bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-7 border border-white/30 md:bg-transparent md:backdrop-blur-none md:rounded-none md:shadow-none md:p-0 md:border-none">
+            {/* Desktop-only Header */}
+            <div className="mb-8 hidden md:block">
               <h2 className="text-2xl font-extrabold text-stone-900 tracking-tight">Welcome Back</h2>
               <p className="text-sm text-stone-500 mt-1.5 font-medium">
                 Sign in to your portal and continue.
@@ -257,6 +242,10 @@ export const Login: React.FC = () => {
 
             {loginFormContent}
           </div>
+
+          {/* Mobile-only Footer */}
+          <p className="text-[10px] text-white/50 mt-8 font-medium md:hidden">© 2026 NH Homes Ltd. All rights reserved.</p>
+
         </div>
       </div>
 

@@ -712,13 +712,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const approvedAt = new Date().toISOString();
     const invoiceDate = new Date().toISOString().split('T')[0];
 
-    let clientToUpdate: { id: string; amount: number } | null = null;
-    let equipmentToRent: string[] = [];
+    const targetRequest = rentalRequests.find(r => r.id === id);
+    if (!targetRequest) {
+      toast.error('Rental request not found');
+      return;
+    }
+
+    const clientToUpdate = { id: targetRequest.clientId, amount: grandTotal };
+    const equipmentToRent = targetRequest.items.map(i => i.equipmentId);
 
     const updatedRentals = rentalRequests.map(req => {
       if (req.id === id) {
-        clientToUpdate = { id: req.clientId, amount: grandTotal };
-        equipmentToRent = req.items.map(i => i.equipmentId);
         return { ...req, rentalNumber, invoiceNumber, additionalCharges, discountTotal, gstTotal, grandTotal, status: 'Approved' as const, approvedAt, invoiceDate };
       }
       return req;

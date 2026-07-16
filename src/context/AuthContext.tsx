@@ -49,7 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // 1. Try Admin check
     if (
       (username.toLowerCase() === 'admin@gmail.com' && password === 'admin@123') ||
-      (username.toLowerCase() === 'rohan.m' && password === 'admin123')
+      ((username.toLowerCase() === 'rohan.m' || username.toLowerCase() === 'rohan.m@nhhomes.in') && password === 'admin123')
     ) {
       authenticatedUser = {
         id: 'user-admin',
@@ -63,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       detectedRole = 'admin';
     } 
     // 2. Try Employee check
-    else if (username.toLowerCase() === 'vikram.s' && password === 'employee123') {
+    else if ((username.toLowerCase() === 'vikram.s' || username.toLowerCase() === 'vikram.s@nhhomes.in') && password === 'employee123') {
       authenticatedUser = {
         id: 'user-emp-1',
         username: 'vikram.s',
@@ -74,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         entityId: 'emp-1'
       };
       detectedRole = 'employee';
-    } else if (username.toLowerCase() === 'neha.s' && password === 'employee123') {
+    } else if ((username.toLowerCase() === 'neha.s' || username.toLowerCase() === 'neha.s@nhhomes.in') && password === 'employee123') {
       authenticatedUser = {
         id: 'user-emp-2',
         username: 'neha.s',
@@ -112,7 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // 3. Try Client check
     if (!authenticatedUser) {
-      if (username.toLowerCase() === 'amit.patel' && password === 'client123') {
+      if ((username.toLowerCase() === 'amit.patel' || username.toLowerCase() === 'amit.patel@lntecc.com') && password === 'client123') {
         authenticatedUser = {
           id: 'user-clt-1',
           username: 'amit.patel',
@@ -123,7 +123,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           entityId: 'clt-1'
         };
         detectedRole = 'client';
-      } else if (username.toLowerCase() === 'rajesh' && password === 'client123') {
+      } else if ((username.toLowerCase() === 'rajesh' || username.toLowerCase() === 'rajesh@rkinfra.in') && password === 'client123') {
         authenticatedUser = {
           id: 'user-clt-2',
           username: 'rajesh',
@@ -139,7 +139,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (localClients) {
           const clientsList = JSON.parse(localClients);
           const matchedClient = clientsList.find(
-            (c: any) => c.email.toLowerCase() === username.toLowerCase() && c.password === password
+            (c: any) => 
+              (c.email.toLowerCase() === username.toLowerCase() || c.name.toLowerCase() === username.toLowerCase()) && 
+              c.password === password
           );
           if (matchedClient) {
             authenticatedUser = {
