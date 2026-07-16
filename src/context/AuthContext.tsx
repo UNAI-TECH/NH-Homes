@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { User, UserRole } from '../types';
+import { supabase } from '../lib/supabase';
 
 interface AuthContextType {
   user: User | null;
@@ -86,26 +87,63 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       detectedRole = 'employee';
     } else {
-      // Try dynamic employee check
-      const localEmployees = localStorage.getItem('nh_homes_db_v2_employees');
-      if (localEmployees) {
-        const employeesList = JSON.parse(localEmployees);
-        const matchedEmployee = employeesList.find(
-          (e: any) =>
-            (e.email.toLowerCase() === username.toLowerCase() || e.username.toLowerCase() === username.toLowerCase())
-        );
-        // Default to employee123 as placeholder password
-        if (matchedEmployee && password === 'employee123') {
+      // Query Supabase directly
+      try {
+        let dbEmp = null;
+        const { data: empByEmail } = await supabase
+          .from('employees')
+          .select('*')
+          .eq('email', username.toLowerCase())
+          .maybeSingle();
+        dbEmp = empByEmail;
+
+        if (!dbEmp) {
+          const { data: empByUsername } = await supabase
+            .from('employees')
+            .select('*')
+            .eq('username', username.toLowerCase())
+            .maybeSingle();
+          dbEmp = empByUsername;
+        }
+
+        if (dbEmp && password === 'employee123') {
           authenticatedUser = {
-            id: `user-${matchedEmployee.id}`,
-            username: matchedEmployee.username,
-            email: matchedEmployee.email,
+            id: `user-${dbEmp.id}`,
+            username: dbEmp.username || dbEmp.email.split('@')[0],
+            email: dbEmp.email,
             role: 'employee',
-            name: matchedEmployee.name,
-            profileImage: matchedEmployee.profilePicture,
-            entityId: matchedEmployee.id
+            name: dbEmp.name,
+            profileImage: dbEmp.profile_picture || dbEmp.avatar || '',
+            entityId: dbEmp.id
           };
           detectedRole = 'employee';
+        }
+      } catch (err) {
+        console.error('Failed to query Supabase directly for employee login:', err);
+      }
+
+      // Try dynamic employee check fallback
+      if (!authenticatedUser) {
+        const localEmployees = localStorage.getItem('nh_homes_db_v2_employees');
+        if (localEmployees) {
+          const employeesList = JSON.parse(localEmployees);
+          const matchedEmployee = employeesList.find(
+            (e: any) =>
+              (e.email.toLowerCase() === username.toLowerCase() || e.username.toLowerCase() === username.toLowerCase())
+          );
+          // Default to employee123 as placeholder password
+          if (matchedEmployee && password === 'employee123') {
+            authenticatedUser = {
+              id: `user-${matchedEmployee.id}`,
+              username: matchedEmployee.username,
+              email: matchedEmployee.email,
+              role: 'employee',
+              name: matchedEmployee.name,
+              profileImage: matchedEmployee.profilePicture,
+              entityId: matchedEmployee.id
+            };
+            detectedRole = 'employee';
+          }
         }
       }
     }
@@ -135,25 +173,77 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         detectedRole = 'client';
       } else {
-        const localClients = localStorage.getItem('nh_homes_db_v2_clients');
-        if (localClients) {
-          const clientsList = JSON.parse(localClients);
-          const matchedClient = clientsList.find(
-            (c: any) => 
-              (c.email.toLowerCase() === username.toLowerCase() || c.name.toLowerCase() === username.toLowerCase()) && 
-              c.password === password
-          );
-          if (matchedClient) {
+        // Query Supabase directly
+        try {
+          let dbClient = null;
+          const { data: clientByEmail } = await supabase
+            .from('clients')
+            .select('*')
+            .eq('email', username.toLowerCase())
+            .eq('password', password)
+            .maybeSingle();
+          dbClient = clientByEmail;
+
+          if (!dbClient) {
+            const { data: clientByClientId } = await supabase
+              .from('clients')
+              .select('*')
+              .eq('client_id', username.toLowerCase())
+              .eq('password', password)
+              .maybeSingle();
+            dbClient = clientByClientId;
+          }
+
+          if (!dbClient) {
+            const { data: clientByName } = await supabase
+              .from('clients')
+              .select('*')
+              .eq('name', username.toLowerCase())
+              .eq('password', password)
+              .maybeSingle();
+            dbClient = clientByName;
+          }
+
+          if (dbClient) {
             authenticatedUser = {
-              id: `user-${matchedClient.id}`,
-              username: matchedClient.email.split('@')[0],
-              email: matchedClient.email,
+              id: `user-${dbClient.id}`,
+              username: dbClient.client_id || dbClient.email.split('@')[0],
+              email: dbClient.email,
               role: 'client',
-              name: matchedClient.name,
-              profileImage: matchedClient.profileImage,
-              entityId: matchedClient.id
+              name: dbClient.name,
+              profileImage: dbClient.profile_image,
+              entityId: dbClient.id
             };
             detectedRole = 'client';
+          }
+        } catch (err) {
+          console.error('Failed to query Supabase directly for client login:', err);
+        }
+
+        // Fallback to localStorage
+        if (!authenticatedUser) {
+          const localClients = localStorage.getItem('nh_homes_db_v2_clients');
+          if (localClients) {
+            const clientsList = JSON.parse(localClients);
+            const matchedClient = clientsList.find(
+              (c: any) => 
+                (c.email.toLowerCase() === username.toLowerCase() || 
+                 c.name.toLowerCase() === username.toLowerCase() ||
+                 (c.client_id && c.client_id.toLowerCase() === username.toLowerCase())) && 
+                c.password === password
+            );
+            if (matchedClient) {
+              authenticatedUser = {
+                id: `user-${matchedClient.id}`,
+                username: matchedClient.client_id || matchedClient.email.split('@')[0],
+                email: matchedClient.email,
+                role: 'client',
+                name: matchedClient.name,
+                profileImage: matchedClient.profileImage,
+                entityId: matchedClient.id
+              };
+              detectedRole = 'client';
+            }
           }
         }
       }
